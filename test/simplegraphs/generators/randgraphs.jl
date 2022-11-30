@@ -412,7 +412,7 @@
         μ2 = mean(s2)
         st1 = std(s1)
         st2 = std(s2)
-        @test μ1 - 1.96 * st1 / sqrt(N) <= n1 * p1 <= μ1 + 1.96 * st1 / sqrt(N)
-        @test μ2 - 1.96 * st2 / sqrt(N) <= n2 * p2 <= μ2 + 1.96 * st2 / sqrt(N)
+        @test μ1 - 1.96 * st1 / sqrt(N) <= n1 * p1 <= μ1 + 1.96 * st1 / sqrt(N) # 95% confidence interval 
+        @test μ2 - 1.96 * st2 / sqrt(N) <= n2 * p2 <= μ2 + 1.96 * st2 / sqrt(N) # 95% confidence interval 
     end
 end
