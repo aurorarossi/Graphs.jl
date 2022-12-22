@@ -1476,3 +1476,49 @@ function random_orientation_dag(
     end
     return g2
 end
+
+"""
+    bernoulli_graph(Λ; rng = nothing)
+
+Given the symmetric matrix ``\\Lambda \\in [0,1]^{n \\times n}``, return a Bernoulli graph with ``n`` vertices. Each edge ``(i,j)`` exists with probability ``\\Lambda[i,j]``.
+"""
+function bernoulli_graph(
+    Λ::AbstractMatrix{<:AbstractFloat}; rng::Union{Nothing,AbstractRNG}=nothing
+)
+    size(Λ)[1] != size(Λ)[2] &&
+        throw(ArgumentError("The probability matrix must be a square matrix"))
+    !issymmetric(Λ) && throw(ArgumentError("Λ must be symmetric"))
+    n = size(Λ)[1]
+    g = SimpleGraph(n)
+    for j in 1:n
+        for i in (j + 1):n
+            if rand(rng) <= Λ[i, j]
+                add_edge!(g, i, j)
+            end
+        end
+    end
+    return g
+end
+
+"""
+rho_correlated_bernoulli_graphs(Λ, ρ; rng = nothing)
+
+Given the symmetric matrix ``\\Lambda \\in [0,1]^{n \\times n}`` and a real number ``\\rho \\in [0,1]`` return a Tuple with two ``\\rho``-correlated Bernoulli graphs with ``n`` vertices. It means that, calling ``A`` and ``B`` the adjacency matrix of the outputed graphs, for ``i,j`` such that ``i``!=``j`` the Pearson correlation coefficient for ``A_{i,j}`` and ``B_{i,j}`` is ``\\rho``.
+"""
+function rho_correlated_bernoulli_graphs(
+    Λ::AbstractMatrix{<:AbstractFloat}, ρ::Float64; rng::Union{Nothing,AbstractRNG}=nothing
+)
+    (ρ < 0.0 || ρ > 1.0) && throw(ArgumentError("ρ must be in [0,1]"))
+    n = size(Λ)[1]
+    g2 = SimpleGraph(n)
+    g1 = bernoulli_graph(Λ; rng)
+    g1_adj = Int.(adjacency_matrix(g1))
+    for j in 1:n
+        for i in (j + 1):n
+            if rand(rng) <= ((1 - ρ) * Λ[i, j] + ρ * g1_adj[i, j])
+                add_edge!(g2, i, j)
+            end
+        end
+    end
+    return g1, g2
+end
