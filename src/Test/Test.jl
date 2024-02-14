@@ -8,7 +8,7 @@ module Test
 
 using Graphs
 
-export GenericEdge, GenericGraph, GenericDiGraph
+export GenericEdge, GenericGraph, GenericDiGraph, generic_graph
 
 """
     GenericEdge <: Graphs.AbstractEdge
@@ -46,11 +46,22 @@ struct GenericDiGraph{T} <: Graphs.AbstractGraph{T}
     g::SimpleDiGraph{T}
 end
 
+"""
+    generic_graph(g::Union{SimpleGraph, SimpleDiGraph})
+
+Return either a GenericGraph or GenericDiGraph that wraps a copy of g.
+"""
+function generic_graph(g::Union{SimpleGraph,SimpleDiGraph})
+    g = copy(g)
+    return is_directed(g) ? GenericDiGraph(g) : GenericGraph(g)
+end
+
+function GenericDiGraph(elist::Vector{Graphs.SimpleDiGraphEdge{T}}) where {T<:Integer}
+    return GenericDiGraph{T}(SimpleDiGraph(elist))
+end
+
 Graphs.is_directed(::Type{<:GenericGraph}) = false
 Graphs.is_directed(::Type{<:GenericDiGraph}) = true
-
-Base.eltype(g::GenericGraph) = eltype(g.g)
-Base.eltype(g::GenericDiGraph) = eltype(g.g)
 
 Graphs.edges(g::GenericGraph) = (GenericEdge(e) for e in Graphs.edges(g.g))
 Graphs.edges(g::GenericDiGraph) = (GenericEdge(e) for e in Graphs.edges(g.g))

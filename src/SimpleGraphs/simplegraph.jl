@@ -19,8 +19,6 @@ function SimpleGraph(ne, fadjlist::Vector{Vector{T}}) where {T}
     return SimpleGraph{T}(ne, fadjlist)
 end
 
-eltype(x::SimpleGraph{T}) where {T} = T
-
 # Graph{UInt8}(6), Graph{Int16}(7), Graph{UInt8}()
 """
     SimpleGraph{T}(n=0)
@@ -266,6 +264,25 @@ function SimpleGraph(edge_list::Vector{SimpleGraphEdge{T}}) where {T<:Integer}
 
     return g
 end
+
+"""
+    SimpleGraph{T}(g::AbstractGraph)
+    SimpleGraph(g::AbstractGraph)
+
+Construct a `SimpleGraph` from any `AbstractGraph` by enumerating edges.
+
+If `g` is directed, a directed edge `{u, v}` is added if either directed edge `(u, v)` or `(v, u)` exists.
+"""
+function SimpleGraph{T}(g::AbstractGraph) where {T}
+    eds = edges(g)
+    srcs = src.(eds)
+    dsts = dst.(eds)
+    newg = SimpleGraph(Edge{T}.(srcs, dsts))
+    add_vertices!(newg, nv(g) - nv(newg))
+    return newg
+end
+
+SimpleGraph(g::AbstractGraph{T}) where {T} = SimpleGraph{T}(g)
 
 @inbounds function add_to_fadjlist!(
     fadjlist::Vector{Vector{T}}, s::T, d::T
